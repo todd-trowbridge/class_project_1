@@ -1,5 +1,6 @@
-import praw
 import json
+import os
+import sqlite3
 
 class Setup:
   def __init__(self):
@@ -9,9 +10,11 @@ class Setup:
     self.password = None
     self.user_agent = None
     self.username = None
-    self.setup()
+    self.setup_reddit()
+    self.default_sql_path = os.path.join(os.path.dirname(__file__), 'data/database.sqlite3')
+    self.db_connect()
   
-  def setup(self):
+  def setup_reddit(self):
     # load init with data from data/setup.txt
     with open('data/setup.json') as json_file:
       self.data = json.load(json_file)
@@ -25,3 +28,8 @@ class Setup:
         print('  client_secret: **************')
         print('  username: ' + str(self.username))
         print('  user_agent: ' + str(self.user_agent))
+
+  def db_connect(self):
+    #the first time you run main.py a file named 'database.sqlite3' will be created in data/
+    db_connection = sqlite3.connect(self.default_sql_path)
+    return db_connection
