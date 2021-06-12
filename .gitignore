@@ -1,0 +1,4 @@
+__pychache__/
+.vscode/
+data/private.txt
+data/setup.json
