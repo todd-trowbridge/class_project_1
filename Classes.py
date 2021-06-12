@@ -49,7 +49,6 @@ class Bot:
     return connection
 
   def create_user(self, user, karma = 1000):
-    # connection = sqlite3.connect(self.default_sql_path)
     connection = self.db_connection
     cursor = connection.cursor()
     try:
@@ -60,3 +59,13 @@ class Bot:
       print(f'created new user: {user} with {karma} karma')
     except:
       print(f'{self.terminal_red} error adding {user}')
+
+
+  def select_user(self):
+    connection = self.db_connection
+    cursor = connection.cursor()
+    try:
+      cursor.execute("SELECT * from users WHERE id = 'toddthestudent'")
+      print(cursor.fetchone())
+    except:
+      print(f'')

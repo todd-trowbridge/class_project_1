@@ -13,3 +13,4 @@ bot = Bot()
 # todo program loop
 
 # testing:
+bot.select_user()
