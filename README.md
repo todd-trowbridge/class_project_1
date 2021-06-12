@@ -1,1 +1,1 @@
-### This is going to be a gambling bot for reddit
+##### This will be a gambling bot for reddit
