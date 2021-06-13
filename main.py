@@ -14,15 +14,21 @@ bot = Bot()
 while True:
   for mention in stream_generator(bot.r.inbox.mentions, skip_existing=True):
     bot.create_mention_db(mention.id)
-    # step 0 (user not in db)
+    # create user if mention.author.name is not in users db
     if bot.check_if_first_contact(mention.author.name): print('first contact')
-    step = bot.get_step_for_mention(mention.id)
-    # step 1
-    if step == 1:
+    # get step
+    step1 = bot.get_step_for_mention(mention.id)
+    # branch for step 1 (user makes an offer)
+    if step1 == 1:
       if bot.parse_mention_comment(mention.id, 'I bet'):
         print('offering bet')
         update_step = bot.update_mention_step(mention.id, 2)
         bot.db_connection.commit()
         print(f'update step = {update_step}')
+    # get step
+    step2 = bot.get_step_for_mention(mention.id)
+    # branch for step 2
+    if step2 == 2:
+      print('pick up here tomorrow')
     
     mention.mark_read()
