@@ -91,14 +91,45 @@ class Bot:
     try:
       cursor.execute(f"SELECT * from mentions WHERE id ='{mention_id}'")
       mention = cursor.fetchone()
-      print(mention['id'])
-      return mention # (id=string)
+      print(mention[0], mention[1])
+      return mention # (id=string, step=int)
     except:
-      print(f'{self.terminal_red} error selecting {mention_id}')
+      # print(f'{self.terminal_red} error selecting {mention_id}')
+      return False
 
+  # returns T/F
   def check_if_first_contact(self, mention_author):
     if not self.select_user_db(mention_author):
-      print(f'first contact with user {mention_author}')
+      # print(f'first contact with user {mention_author}')
       self.create_user_db(mention_author)
+      return True
     else:
-      print(f'not first contact with user {mention_author}')
+      # print(f'not first contact with user {mention_author}')
+      return False
+
+  def parse_mention_comment(self, comment_id):
+    comment = self.r.comment(comment_id)
+    body = comment.body
+    print(body)
+    if(body.find('bet amount is ') != -1):
+      print("Contains given substring")
+    else:
+      print("Doesn't contains given substring")
+
+  def get_step_for_mention(self, mention_id):
+    connection = self.db_connection
+    cursor = connection.cursor()
+    # try:
+    cursor.execute(f"SELECT * from mentions WHERE id = '{mention_id}'")
+    row = cursor.fetchone()
+    step = row[1]
+    print(step)
+    return step
+    # except:
+      # print('get_step_db() failed')
+      # return False
+
+  def perform_step(self, mention_id, step):
+    if step == 0: 
+      comment = self.r.comment(mention_id)
+      self.get_step_for_mention()
