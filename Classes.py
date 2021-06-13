@@ -34,7 +34,7 @@ class Bot:
         print('  username: ' + str(self.username))
         print('  user_agent: ' + str(self.user_agent))
         return praw.Reddit(client_id=self.client_id, client_secret=self.client_secret, user_agent = self.user_agent, username = self.username, password = self.password)
-        # comment the above line and uncomment the next two lines to check reddit connection
+        # comment the above line and uncomment the two lines below to check reddit connection
         # reddit = praw.Reddit(client_id=self.client_id, client_secret=self.client_secret, user_agent = self.user_agent, username = self.username, password = self.password)
         # print('  from reddit.com: logged in as ' + str(reddit.user.me()))
 
@@ -58,10 +58,9 @@ class Bot:
       INSERT INTO users (name, karma)
       VALUES('{user}', {karma});""")
       cursor.connection.commit()
-      row = self.select_user(f'{user}')
-      if row[0] == user: print(f'created new {user=} with {karma=}')
+      print(f'created {user=}')
     except:
-      print(f'{self.terminal_red} error adding {user=}')
+      print(f'{self.terminal_red} error adding {user}')
   
   def select_user_db(self, user):
     connection = self.db_connection
@@ -72,6 +71,7 @@ class Bot:
       return row # (name=string, karma=int)
     except:
       print(f'{self.terminal_red} error selecting {user=}')
+      return False
 
   def create_mention_db(self, mention_id):
     connection = self.db_connection
@@ -95,3 +95,10 @@ class Bot:
       return mention # (id=string)
     except:
       print(f'{self.terminal_red} error selecting {mention_id}')
+
+  def check_if_first_contact(self, mention_author):
+    if not self.select_user_db(mention_author):
+      print(f'first contact with user {mention_author}')
+      self.create_user_db(mention_author)
+    else:
+      print(f'not first contact with user {mention_author}')

@@ -16,4 +16,6 @@ while True:
     mention.mark_read()
     print(mention.id)
     print(mention.submission)
+    print(mention.author)
     bot.create_mention_db(mention.id)
+    bot.check_if_first_contact(mention.author.name)
