@@ -49,14 +49,14 @@ class Bot:
     print("  SQLite3 version: " + version)
     return connection
 
-  # (user=string, karma=)
-  def create_user_db(self, user, karma = 1000):
+  # (user=string, cash=)
+  def create_user_db(self, user, cash = 1000):
     connection = self.db_connection
     cursor = connection.cursor()
     try:
       cursor.execute(f"""
-      INSERT INTO users (name, karma)
-      VALUES('{user}', {karma});""")
+      INSERT INTO users (name, cash)
+      VALUES('{user}', {cash});""")
       cursor.connection.commit()
       print(f'created {user=}')
     except:
@@ -68,7 +68,7 @@ class Bot:
     try:
       cursor.execute(f"SELECT * from users WHERE name ='{user}'")
       row = cursor.fetchone()
-      return row # (name=string, karma=int)
+      return row # (name=string, cash=int)
     except:
       print(f'{self.terminal_red} error selecting {user=}')
       return False
@@ -94,8 +94,7 @@ class Bot:
       print(mention[0], mention[1])
       return mention # (id=string, step=int)
     except:
-      # print(f'{self.terminal_red} error selecting {mention_id}')
-      return False
+      print(f'{self.terminal_red} error selecting {mention_id}')
 
   # returns T/F
   def check_if_first_contact(self, mention_author):
@@ -104,29 +103,44 @@ class Bot:
       self.create_user_db(mention_author)
       return True
     else:
-      # print(f'not first contact with user {mention_author}')
+      print(f'not first contact with user {mention_author}')
       return False
-
-  def parse_mention_comment(self, comment_id):
-    comment = self.r.comment(comment_id)
-    body = comment.body
-    print(body)
-    if(body.find('bet amount is ') != -1):
-      print("Contains given substring")
-    else:
-      print("Doesn't contains given substring")
 
   def get_step_for_mention(self, mention_id):
     connection = self.db_connection
     cursor = connection.cursor()
-    # try:
-    cursor.execute(f"SELECT * from mentions WHERE id = '{mention_id}'")
-    row = cursor.fetchone()
-    step = row[1]
-    print(step)
-    return step
+    try:
+      cursor.execute(f"SELECT * from mentions WHERE id = '{mention_id}'")
+      row = cursor.fetchone()
+      step = row[1]
+      print(step)
+      return step
+    except:
+      print('get_step_db() failed')
+      return False
 
   def perform_step(self, mention_id, step):
     if step == 0: 
       comment = self.r.comment(mention_id)
       self.get_step_for_mention()
+
+  def parse_mention_comment(self, comment_id, text = None):
+    comment = self.r.comment(comment_id)
+    body = comment.body
+    print(body)
+    if(body.find(text) != -1):
+      return True
+    else:
+      return False
+
+  def update_mention_step(self, mention_id, new_step):
+    connection = self.db_connection
+    cursor = connection.cursor()
+    try:
+      cursor.execute(f"UPDATE mentions SET step = {new_step} Where id = '{mention_id}'")
+      return True
+    except:
+      print(f'{self.terminal_red} update_mention_step() error')
+      return False
+
+

@@ -13,10 +13,16 @@ bot = Bot()
 
 while True:
   for mention in stream_generator(bot.r.inbox.mentions, skip_existing=True):
-    if bot.select_mention_db(mention.id):
-      bot.create_mention_db(mention.id)
-    if bot.check_if_first_contact(mention.author.name): 
-      print('first contact')
-      bot.get_step_for_mention(mention.id)
-      bot.parse_mention_comment(mention.id)
+    bot.create_mention_db(mention.id)
+    # step 0 (user not in db)
+    if bot.check_if_first_contact(mention.author.name): print('first contact')
+    step = bot.get_step_for_mention(mention.id)
+    # step 1
+    if step == 1:
+      if bot.parse_mention_comment(mention.id, 'I bet'):
+        print('offering bet')
+        update_step = bot.update_mention_step(mention.id, 2)
+        bot.db_connection.commit()
+        print(f'update step = {update_step}')
+    
     mention.mark_read()
