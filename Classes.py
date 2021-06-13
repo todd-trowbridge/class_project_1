@@ -1,4 +1,6 @@
 import json
+from re import sub
+from sqlite3.dbapi2 import connect
 import praw
 import sqlite3
 
@@ -6,7 +8,6 @@ class Bot:
   #init
   def __init__(self):
     self.terminal_red = '\033[91m'
-    self.data = {}
     self.client_id = None
     self.client_secret = None
     self.password = None
@@ -48,24 +49,50 @@ class Bot:
     print("  SQLite3 version: " + version)
     return connection
 
-  def create_user(self, user, karma = 1000):
+  # (user=string, karma=)
+  def create_user_db(self, user, karma = 1000):
     connection = self.db_connection
     cursor = connection.cursor()
     try:
       cursor.execute(f"""
-      INSERT INTO users (id, karma)
+      INSERT INTO users (name, karma)
       VALUES('{user}', {karma});""")
       cursor.connection.commit()
-      print(f'created new user: {user} with {karma} karma')
+      row = self.select_user(f'{user}')
+      if row[0] == user: print(f'created new {user=} with {karma=}')
     except:
-      print(f'{self.terminal_red} error adding {user}')
+      print(f'{self.terminal_red} error adding {user=}')
 
-
-  def select_user(self):
+  
+  def select_user_db(self, user):
     connection = self.db_connection
     cursor = connection.cursor()
     try:
-      cursor.execute("SELECT * from users WHERE id = 'toddthestudent'")
-      print(cursor.fetchone())
+      cursor.execute(f"SELECT * from users WHERE name ='{user}'")
+      row = cursor.fetchone()
+      return row # (name=string, karma=int)
     except:
-      print(f'')
+      print(f'{self.terminal_red} error selecting {user=}')
+
+  def create_mention_db(self, mention_id):
+    connection = self.db_connection
+    cursor = connection.cursor()
+    try:
+      cursor.execute(f"""
+      INSERT INTO mentions (id)
+      VALUES('{mention_id}');""")
+      cursor.connection.commit()
+      print(f'mention added to db {mention_id=}')
+    except:
+      print(f'{self.terminal_red} error adding {mention_id=}')
+
+  def select_mention_db(self, mention_id):
+    connection = self.db_connection
+    cursor = connection.cursor()
+    try:
+      cursor.execute(f"SELECT * from mentions WHERE id ='{mention_id}'")
+      mention = cursor.fetchone()
+      print(mention['id'])
+      return mention # (id=string)
+    except:
+      print(f'{self.terminal_red} error selecting {mention_id}')

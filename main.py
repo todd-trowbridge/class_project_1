@@ -1,4 +1,5 @@
 from Classes import Bot
+from praw.models.util import stream_generator
 
 # IMPORTANT:
 # the first time running you'll need to create a setup.json file in the data directory
@@ -13,4 +14,9 @@ bot = Bot()
 # todo program loop
 
 # testing:
-bot.select_user()
+while True:
+  for mention in stream_generator(bot.r.inbox.mentions, skip_existing=True):
+    mention.mark_read()
+    print(mention.id)
+    print(mention.submission)
+    bot.create_mention_db(mention.id)
