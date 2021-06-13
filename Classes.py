@@ -125,9 +125,6 @@ class Bot:
     step = row[1]
     print(step)
     return step
-    # except:
-      # print('get_step_db() failed')
-      # return False
 
   def perform_step(self, mention_id, step):
     if step == 0: 
