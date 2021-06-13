@@ -11,9 +11,6 @@ from praw.models.util import stream_generator
 print('running setup')
 bot = Bot()
 
-# todo program loop
-
-# testing:
 while True:
   for mention in stream_generator(bot.r.inbox.mentions, skip_existing=True):
     mention.mark_read()

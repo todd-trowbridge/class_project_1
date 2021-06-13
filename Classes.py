@@ -62,7 +62,6 @@ class Bot:
       if row[0] == user: print(f'created new {user=} with {karma=}')
     except:
       print(f'{self.terminal_red} error adding {user=}')
-
   
   def select_user_db(self, user):
     connection = self.db_connection
