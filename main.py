@@ -24,6 +24,7 @@ while True:
         print('offering bet')
         update_step = bot.update_mention_step(mention.id, 2)
         bot.db_connection.commit()
+        # todo update offered_bets table
         print(f'update step = {update_step}')
     # get step
     step2 = bot.get_step_for_mention(mention.id)
