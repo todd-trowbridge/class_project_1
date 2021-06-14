@@ -8,9 +8,10 @@ from praw.models.util import stream_generator
 # fill in each empty "" with info from your reddit account, see https://redditclient.readthedocs.io/en/latest/oauth/ for more info
 
 # setup
-print('running setup')
+print('\nrunning setup')
 bot = Bot()
 comments = []
+print('setup finished\n')
 
 while True:
   # setup subreddit stream of comments
