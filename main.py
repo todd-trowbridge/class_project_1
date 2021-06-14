@@ -15,8 +15,16 @@ comments = []
 while True:
   # setup subreddit stream of comments
   for comment in bot.r.subreddit('dc_bot_testing').stream.comments(skip_existing=True):
+    comment_id = comment.id
     comments.append(comment)
     for comment in comments:
-      comment = comments.pop()
-      text_string_to_search = 'feet'
-      converted_phrase = bot.parse_comment(comment, text_string_to_search)
+      if comment.author != 'toddthestudent':
+        comment = comments.pop()
+        text_string_to_search = 'feet'
+        converted_phrase = bot.parse_comment(comment, text_string_to_search)
+        if converted_phrase == False:
+          pass
+        else:
+          comment = bot.r.comment(id=comment_id)
+          comment.reply(bot.list_to_comment(converted_phrase))
+      else: comments.pop()
