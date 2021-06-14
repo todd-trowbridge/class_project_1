@@ -74,9 +74,3 @@ class Bot:
     new_unit_of_measure = list[3]
 
     return f'{original_number} {original_unit_of_measure} equals {new_number} {new_unit_of_measure}'
-
-  def list_of_conversions(self):
-    list = [
-      'feet',
-      'meters'
-    ]
