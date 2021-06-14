@@ -10,26 +10,13 @@ from praw.models.util import stream_generator
 # setup
 print('running setup')
 bot = Bot()
+comments = []
 
 while True:
-  for mention in stream_generator(bot.r.inbox.mentions, skip_existing=True):
-    bot.create_mention_db(mention.id)
-    # create user if mention.author.name is not in users db
-    if bot.check_if_first_contact(mention.author.name): print('first contact')
-    # get step
-    step1 = bot.get_step_for_mention(mention.id)
-    # branch for step 1 (user makes an offer)
-    if step1 == 1:
-      if bot.parse_mention_comment(mention.id, 'I bet'):
-        print('offering bet')
-        update_step = bot.update_mention_step(mention.id, 2)
-        bot.db_connection.commit()
-        # todo update offered_bets table
-        print(f'update step = {update_step}')
-    # get step
-    step2 = bot.get_step_for_mention(mention.id)
-    # branch for step 2
-    if step2 == 2:
-      print('pick up here tomorrow')
-    
-    mention.mark_read()
+  # setup subreddit stream of comments
+  for comment in bot.r.subreddit('dc_bot_testing').stream.comments(skip_existing=True):
+    comments.append(comment)
+    for comment in comments:
+      comment = comments.pop()
+      text_string_to_search = 'feet'
+      converted_phrase = bot.parse_comment(comment, text_string_to_search)
