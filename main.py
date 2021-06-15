@@ -1,5 +1,6 @@
 from Classes import Bot
 from praw.models.util import stream_generator
+import sqlite3
 
 # IMPORTANT:
 # the first time running you'll need to create a setup.json file in the data directory
@@ -10,22 +11,18 @@ from praw.models.util import stream_generator
 # setup
 print('\nrunning setup')
 bot = Bot()
-comments = []
+list_of_unparsed_comments = []
 print('setup finished\n')
 
 while True:
   # setup subreddit stream of comments
-  for comment in bot.r.subreddit('dc_bot_testing').stream.comments(skip_existing=True):
-    comment_id = comment.id
-    comments.append(comment)
-    for comment in comments:
-      if comment.author != 'toddthestudent':
-        comment = comments.pop()
-        text_string_to_search = 'feet'
-        converted_phrase = bot.parse_comment(comment, text_string_to_search)
-        if converted_phrase == False:
-          pass
-        else:
-          comment = bot.r.comment(id=comment_id)
-          comment.reply(bot.list_to_comment(converted_phrase))
-      else: comments.pop()
+  for comment in bot.r.subreddit('dc_bot_testing').stream.comments():
+    list_of_unparsed_comments.append(comment)
+    if comment.author != 'toddthestudent':
+      unparsed_comment = list_of_unparsed_comments.pop()
+      if bot.parse_comment(unparsed_comment):
+        bot.save_comment_to_db(unparsed_comment)
+        bot.r.comment(id=unparsed_comment.id)
+        print(f'posting conversion to comment id = {unparsed_comment.id}')
+        comment.reply(bot.list_to_comment())
+        bot.reset_list()
