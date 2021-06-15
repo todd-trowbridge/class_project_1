@@ -4,7 +4,7 @@ import praw
 
 class Bot:
   def __init__(self):
-    # vars for PRAW
+    # vars for PRAW (Python Reddit API Wrapper https://github.com/praw-dev/praw) 
     self.client_id = None
     self.client_secret = None
     self.password = None
@@ -12,9 +12,9 @@ class Bot:
     self.username = None
     self.subreddits = 'dc_bot_testing'
     # vars for conversion
-    self.list_of_conversions = ['feet', 'meter', 'meters', 'celsius', 'fahrenheit']
+    self.list_of_conversions = ['feet', 'meter', 'meters', 'kilometers', 'miles', 'celsius', 'fahrenheit']
     self.phrase = [0, 1, 2, 3]
-    # vars for sqlite3
+    # vars for sqlite3 (https://www.sqlite.org/index.html)
     self.db = self.setup_db()
     self.list_of_unparsed_comments = []
     # lastly call call setup() and assign praw reddit to self.r
@@ -58,7 +58,7 @@ class Bot:
           parent_comment.reply(self.list_to_comment())
           self.reset_list()
         else: print('ignoring self comment')
-        print(f'done processing comment {comment.id}')
+        print(f'done processing comment {comment.id} \n')
 
   def parse_comment(self, comment):
     # split comment body into a list of words
@@ -75,10 +75,11 @@ class Bot:
           # set preceding word index
           preceding_word_index -= 1
           # remove commas from numbers before checking if it is a float
-          possible_float = str(word_list[preceding_word_index]).replace(",", '')
+          possible_float = str(word_list[preceding_word_index])
+          possible_float = possible_float.replace(",", '')
           # if float() fails return False
           # feet to meters
-          if word.lower() == 'feet' or 'feets':
+          if word.lower() == 'feet':
             float(possible_float)
             self.phrase[0] = possible_float
             self.phrase[1] = 'feet'
@@ -86,15 +87,31 @@ class Bot:
             self.phrase[3] = 'meters'
             return True
           # meters to feet
-          elif word.lower() == 'meters' or 'meter':
+          elif word.lower() == 'meters':
             float(possible_float)
             self.phrase[0] = possible_float
             self.phrase[1] = 'meters'
             self.phrase[2] = self.meters_to_feet()
             self.phrase[3] = 'feet'
             return True
+          # kilometers to miles
+          if word.lower() == 'kilometers':
+            float(possible_float)
+            self.phrase[0] = possible_float
+            self.phrase[1] = 'kilometers'
+            self.phrase[2] = self.kilometers_to_miles()
+            self.phrase[3] = 'miles'
+            return True
+          # miles to kilometers
+          if word.lower() == 'miles':
+            float(possible_float)
+            self.phrase[0] = possible_float
+            self.phrase[1] = 'miles'
+            self.phrase[2] = self.miles_to_kilometers()
+            self.phrase[3] = 'kilometers'
+            return True
           # celsius to fahrenheit
-          elif word.lower() == 'celsius' or 'celcius':
+          elif word.lower() == 'celsius':
             float(possible_float)
             self.phrase[0] = possible_float
             self.phrase[1] = 'celsius'
@@ -168,6 +185,16 @@ class Bot:
     print('converting meters to feet')
     number_to_convert = float(self.phrase[0])
     return round(number_to_convert * 3.2808, 2)
+  
+  def kilometers_to_miles(self):
+    print('converting kilometers to miles')
+    number_to_convert = float(self.phrase[0])
+    return round(number_to_convert * 0.621, 1)
+
+  def miles_to_kilometers(self):
+    print('converting miles to kilometers')
+    number_to_convert = float(self.phrase[0])
+    return round(number_to_convert * 1.609, 1)
 
   def celsius_to_fahrenheit(self):
     print('converting celsius to fahrenheit')
