@@ -13,6 +13,7 @@ class Bot:
     self.phrase = [0, 1, 2, 3]
     self.db = self.setup_db()
     self.list_of_unparsed_comments = []
+    self.subreddits = 'dc_bot_testing'
     # run setup and assign praw reddit to self.r
     self.r = self.setup()
   
@@ -39,7 +40,7 @@ class Bot:
   def parse_comment(self, comment):
     # split text into a list of words
     body = comment.body
-    word_list = body.split(' ') 
+    word_list = body.split(' ')
     # search the words for the text paramater
     try:
       for word in word_list:
@@ -47,26 +48,27 @@ class Bot:
           # get index of preceding word
           preceding_word_index = word_list.index(word)
           preceding_word_index -= 1
-          possible_float = word_list[preceding_word_index]
+          # remove commas from numbers before checking if it is a float
           # check if preceding word is a float
           # if float() fails return False
-          if word.lower() == 'feet':
-            self.phrase[0] = possible_float
+          possible_float = str(word_list[preceding_word_index]).replace(",", '')
+          if word.lower() == 'feet' or 'feets':
             float(possible_float)
+            self.phrase[0] = possible_float
             self.phrase[1] = 'feet'
             self.phrase[2] = self.feet_to_meters()
             self.phrase[3] = 'meters'
             return True
           elif word.lower() == 'meters' or 'meter':
-            self.phrase[0] = possible_float
             float(possible_float)
+            self.phrase[0] = possible_float
             self.phrase[1] = 'meters'
             self.phrase[2] = self.meters_to_feet()
             self.phrase[3] = 'feet'
             return True
-          elif word.lower() == 'celsius':
-            self.phrase[0] = possible_float
+          elif word.lower() == 'celsius' or 'celcius':
             float(possible_float)
+            self.phrase[0] = possible_float
             self.phrase[1] = 'celsius'
             self.phrase[2] = self.celsius_to_fahrenheit()
             self.phrase[3] = 'fahrenheit'
@@ -79,19 +81,21 @@ class Bot:
             self.phrase[3] = 'celsius'
             return True
           else:
+            self.reset_list()
             return False
     except:
+      self.reset_list()
       return False
 
   def feet_to_meters(self):
     print('converting feet to meters')
     number_to_convert = float(self.phrase[0])
-    return round(number_to_convert * 0.3408, 2)
+    return round(number_to_convert * 0.3048, 2)
 
   def meters_to_feet(self):
     print('converting meters to feet')
     number_to_convert = float(self.phrase[0])
-    return round(number_to_convert / 0.3408, 2)
+    return round(number_to_convert * 3.2808, 2)
 
   def celsius_to_fahrenheit(self):
     print('converting celsius to fahrenheit')
@@ -112,6 +116,7 @@ class Bot:
       return f'{self.phrase[0]}° {self.phrase[1]} is {self.phrase[2]}° {self.phrase[3]}'
 
   def reset_list(self):
+    self.phrase = []
     self.phrase = [0, 1, 2, 3]
 
   def setup_db(self):
@@ -160,4 +165,5 @@ class Bot:
           parent_comment = self.r.comment(comment)
           parent_comment.reply(self.list_to_comment())
           self.reset_list()
+        else: print('ignoring self comment')
         print(f'done processing comment {comment.id}')

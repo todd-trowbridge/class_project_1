@@ -8,11 +8,11 @@ import praw
 # fill in each empty "" with info from your reddit account, see https://redditclient.readthedocs.io/en/latest/oauth/ for more info
 
 # setup
-print('\nrunning setup')
+print('\n running setup')
 bot = Bot()
-print('setup finished\n')
+print('setup finished \n')
 
 while True:
   # setup subreddit stream of comments
-  for comment in bot.r.subreddit('dc_bot_testing').stream.comments():
+  for comment in bot.r.subreddit(bot.subreddits).stream.comments():
     bot.process_comments(comment)
