@@ -4,22 +4,25 @@ import praw
 
 class Bot:
   def __init__(self):
+    # vars for PRAW
     self.client_id = None
     self.client_secret = None
     self.password = None
     self.user_agent = None
     self.username = None
+    self.subreddits = 'dc_bot_testing'
+    # vars for conversion
     self.list_of_conversions = ['feet', 'meter', 'meters', 'celsius', 'fahrenheit']
     self.phrase = [0, 1, 2, 3]
+    # vars for sqlite3
     self.db = self.setup_db()
     self.list_of_unparsed_comments = []
-    self.subreddits = 'dc_bot_testing'
-    # run setup and assign praw reddit to self.r
+    # lastly call call setup() and assign praw reddit to self.r
     self.r = self.setup()
   
   # setup (ran once on start of main.py)
   def setup(self):
-    # load init with data from data/setup.txt
+    # load bot class init with data from data/setup.txt
     with open('data/setup.json') as json_file:
       self.data = json.load(json_file)
       for item in self.data['setup']:
@@ -33,25 +36,48 @@ class Bot:
         print('  username: ' + str(self.username))
         print('  user_agent: ' + str(self.user_agent))
         return praw.Reddit(client_id=self.client_id, client_secret=self.client_secret, user_agent = self.user_agent, username = self.username, password = self.password)
-        # comment the above line and uncomment the two lines below to check reddit connection
+        # comment out the above line and uncomment the two lines below to check reddit connection is good
         # reddit = praw.Reddit(client_id=self.client_id, client_secret=self.client_secret, user_agent = self.user_agent, username = self.username, password = self.password)
         # print('  from reddit.com: logged in as ' + str(reddit.user.me()))
 
+  def process_comments(self, comment):
+    self.list_of_unparsed_comments.append(comment)
+    for comment in self.list_of_unparsed_comments:
+      # check if comment is in db
+      db_check = self.get_comment_from_db_by_id(self.list_of_unparsed_comments.pop())
+      if db_check:
+        # print('duplicate comment')
+        pass
+      else:
+        print(f'processing comment {comment.id}')
+        self.save_comment_to_db(comment)
+        # check if bot is the author
+        if comment.author != 'toddthestudent':
+          self.parse_comment(comment)
+          parent_comment = self.r.comment(comment)
+          parent_comment.reply(self.list_to_comment())
+          self.reset_list()
+        else: print('ignoring self comment')
+        print(f'done processing comment {comment.id}')
+
   def parse_comment(self, comment):
-    # split text into a list of words
+    # split comment body into a list of words
     body = comment.body
     word_list = body.split(' ')
-    # search the words for the text paramater
+    # search the comment body for words in self.list_of_conversions
     try:
+      # for every word from comment body
       for word in word_list:
+        # compare with every word in self.list_of_conversions
         if word.lower() in self.list_of_conversions:
           # get index of preceding word
           preceding_word_index = word_list.index(word)
+          # set preceding word index
           preceding_word_index -= 1
           # remove commas from numbers before checking if it is a float
-          # check if preceding word is a float
-          # if float() fails return False
           possible_float = str(word_list[preceding_word_index]).replace(",", '')
+          # if float() fails return False
+          # feet to meters
           if word.lower() == 'feet' or 'feets':
             float(possible_float)
             self.phrase[0] = possible_float
@@ -59,6 +85,7 @@ class Bot:
             self.phrase[2] = self.feet_to_meters()
             self.phrase[3] = 'meters'
             return True
+          # meters to feet
           elif word.lower() == 'meters' or 'meter':
             float(possible_float)
             self.phrase[0] = possible_float
@@ -66,6 +93,7 @@ class Bot:
             self.phrase[2] = self.meters_to_feet()
             self.phrase[3] = 'feet'
             return True
+          # celsius to fahrenheit
           elif word.lower() == 'celsius' or 'celcius':
             float(possible_float)
             self.phrase[0] = possible_float
@@ -73,6 +101,7 @@ class Bot:
             self.phrase[2] = self.celsius_to_fahrenheit()
             self.phrase[3] = 'fahrenheit'
             return True
+          # fahrenheit to celsius
           elif word.lower() == 'fahrenheit':
             self.phrase[0] = possible_float
             float(possible_float)
@@ -81,33 +110,13 @@ class Bot:
             self.phrase[3] = 'celsius'
             return True
           else:
+            # reset phrase to [0,1,2,3]
             self.reset_list()
             return False
     except:
+      # reset phrase to [0,1,2,3]
       self.reset_list()
       return False
-
-  def feet_to_meters(self):
-    print('converting feet to meters')
-    number_to_convert = float(self.phrase[0])
-    return round(number_to_convert * 0.3048, 2)
-
-  def meters_to_feet(self):
-    print('converting meters to feet')
-    number_to_convert = float(self.phrase[0])
-    return round(number_to_convert * 3.2808, 2)
-
-  def celsius_to_fahrenheit(self):
-    print('converting celsius to fahrenheit')
-    number_to_convert = float(self.phrase[0])
-    converted_number = (((number_to_convert/5)*9)+32)
-    return round(converted_number, 2)
-
-  def fahrenheit_to_celsius(self):
-    print('converting fahrenheit to celsius')
-    number_to_convert = float(self.phrase[0])
-    converted_number = (((number_to_convert-32)*5)/9)
-    return round(converted_number, 2)
 
   def list_to_comment(self):
     if self.phrase[1] != 'celsius' or 'fahrenheit':
@@ -148,22 +157,28 @@ class Bot:
     except(sqlite3.IntegrityError):
         return False
 
-  def process_comments(self, comment):
-    self.list_of_unparsed_comments.append(comment)
-    for comment in self.list_of_unparsed_comments:
-      # check if comment is in db
-      db_check = self.get_comment_from_db_by_id(self.list_of_unparsed_comments.pop())
-      if db_check:
-        # print('duplicate comment')
-        pass
-      else:
-        print(f'processing comment {comment.id}')
-        self.save_comment_to_db(comment)
-        # check if bot is the author
-        if comment.author != 'toddthestudent':
-          self.parse_comment(comment)
-          parent_comment = self.r.comment(comment)
-          parent_comment.reply(self.list_to_comment())
-          self.reset_list()
-        else: print('ignoring self comment')
-        print(f'done processing comment {comment.id}')
+# begin conversion formulas
+
+  def feet_to_meters(self):
+    print('converting feet to meters')
+    number_to_convert = float(self.phrase[0])
+    return round(number_to_convert * 0.3048, 2)
+
+  def meters_to_feet(self):
+    print('converting meters to feet')
+    number_to_convert = float(self.phrase[0])
+    return round(number_to_convert * 3.2808, 2)
+
+  def celsius_to_fahrenheit(self):
+    print('converting celsius to fahrenheit')
+    number_to_convert = float(self.phrase[0])
+    converted_number = (((number_to_convert/5)*9)+32)
+    return round(converted_number, 2)
+
+  def fahrenheit_to_celsius(self):
+    print('converting fahrenheit to celsius')
+    number_to_convert = float(self.phrase[0])
+    converted_number = (((number_to_convert-32)*5)/9)
+    return round(converted_number, 2)
+
+  # end formula conversions

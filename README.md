@@ -1,1 +1,1 @@
-##### This will be a gambling bot for reddit
+##### This is a metric / imperial conversion bot for reddit
