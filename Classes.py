@@ -75,7 +75,7 @@ class Bot:
             self.phrase[0] = possible_float
             float(possible_float)
             self.phrase[1] = 'fahrenheit'
-            self.phrase[2] = self.celsius_to_fahrenheit()
+            self.phrase[2] = self.fahrenheit_to_celsius()
             self.phrase[3] = 'celcius'
             return True
           else:
@@ -126,7 +126,7 @@ class Bot:
     else:
       return False
 
-  def load_data(self):
+  def get_comments_from_db(self):
     cursor = self.db.cursor()
     cursor.execute('SELECT * FROM comments;')
     comments = cursor.fetchall()
@@ -160,3 +160,4 @@ class Bot:
           parent_comment = self.r.comment(comment)
           parent_comment.reply(self.list_to_comment())
           self.reset_list()
+        print(f'done processing comment {comment.id}')
