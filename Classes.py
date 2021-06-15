@@ -57,7 +57,7 @@ class Bot:
             self.phrase[2] = self.feet_to_meters()
             self.phrase[3] = 'meters'
             return True
-          elif word.lower() == 'meters':
+          elif word.lower() == 'meters' or 'meter':
             self.phrase[0] = possible_float
             float(possible_float)
             self.phrase[1] = 'meters'
@@ -76,7 +76,7 @@ class Bot:
             float(possible_float)
             self.phrase[1] = 'fahrenheit'
             self.phrase[2] = self.fahrenheit_to_celsius()
-            self.phrase[3] = 'celcius'
+            self.phrase[3] = 'celsius'
             return True
           else:
             return False
@@ -107,9 +107,9 @@ class Bot:
 
   def list_to_comment(self):
     if self.phrase[1] != 'celsius' or 'fahrenheit':
-      return f'{self.phrase[0]} {self.phrase[1]} equals {self.phrase[2]} {self.phrase[3]}'
+      return f'{self.phrase[0]} {self.phrase[1]} is {self.phrase[2]} {self.phrase[3]}'
     else:
-      return f'{self.phrase[0]}° {self.phrase[1]} equals {self.phrase[2]}° {self.phrase[3]}'
+      return f'{self.phrase[0]}° {self.phrase[1]} is {self.phrase[2]}° {self.phrase[3]}'
 
   def reset_list(self):
     self.phrase = [0, 1, 2, 3]
