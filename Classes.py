@@ -12,13 +12,12 @@ class Bot:
     self.list_of_conversions = ['feet', 'meter', 'meters', 'celsius', 'fahrenheit']
     self.phrase = [0, 1, 2, 3]
     self.db = self.setup_db()
-    self.list_of_parsed_comments = []
+    self.list_of_unparsed_comments = []
     # run setup and assign praw reddit to self.r
     self.r = self.setup()
   
   # setup (ran once on start of main.py)
   def setup(self):
-    self.list_of_parsed_comments = self.load_data()
     # load init with data from data/setup.txt
     with open('data/setup.json') as json_file:
       self.data = json.load(json_file)
@@ -71,15 +70,13 @@ class Bot:
             self.phrase[1] = 'celsius'
             self.phrase[2] = self.celsius_to_fahrenheit()
             self.phrase[3] = 'fahrenheit'
-            print(f'{self.phrase[2]}')
             return True
           elif word.lower() == 'fahrenheit':
             self.phrase[0] = possible_float
             float(possible_float)
-            self.phrase[1] = 'celsius'
+            self.phrase[1] = 'fahrenheit'
             self.phrase[2] = self.celsius_to_fahrenheit()
-            self.phrase[3] = 'fahrenheit'
-            print(f'{self.phrase[2]}')
+            self.phrase[3] = 'celcius'
             return True
           else:
             return False
@@ -109,10 +106,10 @@ class Bot:
     return round(converted_number, 2)
 
   def list_to_comment(self):
-    if self.phrase[1] == 'celsius' or 'fahrenheit':
-      return f'{self.phrase[0]}° {self.phrase[1]} equals {self.phrase[2]}° {self.phrase[3]}'
-    else:
+    if self.phrase[1] != 'celsius' or 'fahrenheit':
       return f'{self.phrase[0]} {self.phrase[1]} equals {self.phrase[2]} {self.phrase[3]}'
+    else:
+      return f'{self.phrase[0]}° {self.phrase[1]} equals {self.phrase[2]}° {self.phrase[3]}'
 
   def reset_list(self):
     self.phrase = [0, 1, 2, 3]
@@ -120,20 +117,46 @@ class Bot:
   def setup_db(self):
     return sqlite3.connect("data/db.sqlite3")
 
+  def get_comment_from_db_by_id(self, comment):
+    cursor = self.db.cursor()
+    cursor.execute(f"SELECT * FROM comments WHERE id='{comment}';")
+    fetched_comment = cursor.fetchone()
+    if fetched_comment != None:
+      return True
+    else:
+      return False
+
   def load_data(self):
     cursor = self.db.cursor()
-    cursor.execute('SELECT * from comments;')
+    cursor.execute('SELECT * FROM comments;')
     comments = cursor.fetchall()
-    print(comments)
-    return comments
+    for comment in comments:
+      self.list_of_parsed_comments.append(comment)
 
   def save_comment_to_db(self, comment):
     try:
       comment_id = comment.id
       cursor = self.db.cursor()
-      cursor.execute(f"INSERT INTO comments (id) values ( '{comment_id}' );")
+      cursor.execute(f"INSERT INTO comments VALUES ('{comment_id}');")
       self.db.commit()
-      self.list_of_parsed_comments.append(comment.id)
-      print('commited to db')
+      return True
     except(sqlite3.IntegrityError):
-        print('error adding comment')
+        return False
+
+  def process_comments(self, comment):
+    self.list_of_unparsed_comments.append(comment)
+    for comment in self.list_of_unparsed_comments:
+      # check if comment is in db
+      db_check = self.get_comment_from_db_by_id(self.list_of_unparsed_comments.pop())
+      if db_check:
+        # print('duplicate comment')
+        pass
+      else:
+        print(f'processing comment {comment.id}')
+        self.save_comment_to_db(comment)
+        # check if bot is the author
+        if comment.author != 'toddthestudent':
+          self.parse_comment(comment)
+          parent_comment = self.r.comment(comment)
+          parent_comment.reply(self.list_to_comment())
+          self.reset_list()
