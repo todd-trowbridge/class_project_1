@@ -78,6 +78,7 @@ class Bot:
           possible_float = str(word_list[preceding_word_index])
           possible_float = possible_float.replace(",", '')
           # if float() fails return False
+          # todo break out the following function ending into a dictionary for easier configuration
           # feet to meters
           if word.lower() == 'feet':
             float(possible_float)
@@ -141,22 +142,28 @@ class Bot:
     else:
       return f'{self.phrase[0]} degrees {self.phrase[1]} is {self.phrase[2]} degrees {self.phrase[3]}'
 
+  # reset phrase
   def reset_list(self):
     self.phrase = []
     self.phrase = [0, 1, 2, 3]
 
+  # setup db connection
   def setup_db(self):
     return sqlite3.connect("data/db.sqlite3")
 
+  # get comment from db
   def get_comment_from_db_by_id(self, comment):
+    # cursor 'highlights' the selected item and returns either one .fetchone() or all .fetchall()
     cursor = self.db.cursor()
     cursor.execute(f"SELECT * FROM comments WHERE id='{comment}';")
     fetched_comment = cursor.fetchone()
+    # check if comment is empty
     if fetched_comment != None:
       return True
     else:
       return False
 
+  # get all comments from db
   def get_comments_from_db(self):
     cursor = self.db.cursor()
     cursor.execute('SELECT * FROM comments;')
@@ -164,7 +171,9 @@ class Bot:
     for comment in comments:
       self.list_of_parsed_comments.append(comment)
 
+  # save comment to db
   def save_comment_to_db(self, comment):
+    # expected to fail gracefully if comment is already in database
     try:
       comment_id = comment.id
       cursor = self.db.cursor()

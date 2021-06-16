@@ -12,6 +12,8 @@ print('\n running setup')
 bot = Bot()
 print('setup finished \n')
 
+# run until something breaks
+# ctrl + c stops the app in terminal
 while True:
   # setup subreddit stream of comments
   for comment in bot.r.subreddit(bot.subreddits).stream.comments():
