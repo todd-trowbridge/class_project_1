@@ -209,12 +209,12 @@ class Bot:
     print('converting celsius to fahrenheit')
     number_to_convert = float(self.phrase[0])
     converted_number = (((number_to_convert/5)*9)+32)
-    return round(converted_number, 2)
+    return round(converted_number, 1)
 
   def fahrenheit_to_celsius(self):
     print('converting fahrenheit to celsius')
     number_to_convert = float(self.phrase[0])
     converted_number = (((number_to_convert-32)*5)/9)
-    return round(converted_number, 2)
+    return round(converted_number, 1)
 
   # end formula conversions
