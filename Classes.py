@@ -53,10 +53,10 @@ class Bot:
         self.save_comment_to_db(comment)
         # check if bot is the author
         if comment.author != 'toddthestudent':
-          self.parse_comment(comment)
-          parent_comment = self.r.comment(comment)
-          parent_comment.reply(self.list_to_comment())
-          self.reset_list()
+          if self.parse_comment(comment):
+            parent_comment = self.r.comment(comment)
+            parent_comment.reply(self.list_to_comment())
+            self.reset_list()
         else: print('ignoring self comment')
         print(f'done processing comment {comment.id} \n')
 
@@ -139,7 +139,7 @@ class Bot:
     if self.phrase[1] != 'celsius' or 'fahrenheit':
       return f'{self.phrase[0]} {self.phrase[1]} is {self.phrase[2]} {self.phrase[3]}'
     else:
-      return f'{self.phrase[0]}° {self.phrase[1]} is {self.phrase[2]}° {self.phrase[3]}'
+      return f'{self.phrase[0]} degrees {self.phrase[1]} is {self.phrase[2]} degrees {self.phrase[3]}'
 
   def reset_list(self):
     self.phrase = []
@@ -150,7 +150,11 @@ class Bot:
 
   def get_comment_from_db_by_id(self, comment):
     cursor = self.db.cursor()
-    cursor.execute(f"SELECT * FROM comments WHERE id='{comment}';")
+    \\\\\
+    
+    
+    
+     asdfcursor.execute(f"SELECT * FROM comments WHERE id='{comment}';")
     fetched_comment = cursor.fetchone()
     if fetched_comment != None:
       return True
