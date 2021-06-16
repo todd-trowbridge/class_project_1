@@ -150,11 +150,7 @@ class Bot:
 
   def get_comment_from_db_by_id(self, comment):
     cursor = self.db.cursor()
-    \\\\\
-    
-    
-    
-     asdfcursor.execute(f"SELECT * FROM comments WHERE id='{comment}';")
+    cursor.execute(f"SELECT * FROM comments WHERE id='{comment}';")
     fetched_comment = cursor.fetchone()
     if fetched_comment != None:
       return True
